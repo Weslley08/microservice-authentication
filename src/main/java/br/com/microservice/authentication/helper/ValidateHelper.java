@@ -1,6 +1,5 @@
 package br.com.microservice.authentication.helper;
 
-import br.com.microservice.authentication.exception.BadRequestErrorException;
 import br.com.microservice.authentication.exception.NotFoundErrorException;
 import br.com.microservice.authentication.exception.UnauthorizedErrorException;
 import br.com.microservice.authentication.exception.UnprocessableEntityErrorException;
@@ -18,14 +17,13 @@ import static br.com.microservice.authentication.model.enums.Role.ADMIN;
 @Component
 public class ValidateHelper {
 
-    private final UserRepository userRepository;
-
     private final static String REGEX_PASSWORD =
             "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[$*&@#])(?:([0-9a-zA-Z$*&@#])(?!\\1)){8,}$";
     private final static List<String> STRINGS_ERROR = Arrays.stream(new String[]{
             "Deve conter 8 caracteres no mínimo", "Deve conter 1 Letra Maiúscula no mínimo",
             "Deve conter 1 Número no mínimo", "1 Símbolo no mínimo: $*&@#", "Não deve conter caracteres emse sequencia"
     }).toList();
+    private final UserRepository userRepository;
 
     public ValidateHelper(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -37,8 +35,8 @@ public class ValidateHelper {
                 .orElseThrow(() -> {
                     List<CampoError> campoErrors = new ArrayList<>(5);
 
-                    for (int i = 0; i < STRINGS_ERROR.size(); i++) {
-                        campoErrors.add(new CampoError("password", STRINGS_ERROR.get(i)));
+                    for (String s : STRINGS_ERROR) {
+                        campoErrors.add(new CampoError("password", s));
                     }
                     throw new UnprocessableEntityErrorException(
                             new ErrorData(HttpStatus.UNPROCESSABLE_ENTITY.getReasonPhrase(),

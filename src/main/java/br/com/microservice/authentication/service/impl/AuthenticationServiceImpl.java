@@ -1,7 +1,7 @@
 package br.com.microservice.authentication.service.impl;
 
-import br.com.microservice.authentication.helper.JwtCreator;
 import br.com.microservice.authentication.exception.BadRequestErrorException;
+import br.com.microservice.authentication.helper.JwtCreator;
 import br.com.microservice.authentication.model.ResponseData;
 import br.com.microservice.authentication.model.dto.ErrorData;
 import br.com.microservice.authentication.model.dto.JwtDto;

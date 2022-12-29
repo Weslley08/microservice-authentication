@@ -1,15 +1,8 @@
 package br.com.microservice.authentication.mapper;
 
 import br.com.microservice.authentication.model.ResponseData;
-import br.com.microservice.authentication.model.dto.ErrorData;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 public final class ModelUtilsMapper {
 
@@ -23,22 +16,6 @@ public final class ModelUtilsMapper {
 
     public static <T> T fromObject(Object originClass, Class<T> targetClass) {
         return MAPPER.convertValue(originClass, targetClass);
-    }
-
-    public static <T> T convertJsonToObject(String originClass, Class<T> targetClass) {
-        try {
-            return MAPPER.readValue(originClass, targetClass);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e.toString());
-        }
-    }
-
-    public static <T> T convertJsonToObject(InputStream originClass, Class<T> targetClass) {
-        try {
-            return MAPPER.readValue(originClass, targetClass);
-        } catch (IOException e) {
-            throw new RuntimeException(e.toString());
-        }
     }
 
 

@@ -5,5 +5,5 @@ public enum TypeUpdate {
     CHANGE_USER,
     CHANGE_PASSWORD,
     CHANGE_ROLE,
-    DEACTIVATE_USER;
+    DEACTIVATE_USER
 }

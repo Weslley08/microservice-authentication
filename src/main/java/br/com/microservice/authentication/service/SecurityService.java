@@ -7,6 +7,8 @@ import java.util.Set;
 
 public interface SecurityService {
     Set<SimpleGrantedAuthority> getAuthority(UserEntity user);
+
     void encodedPasswordUser(UserEntity user, String passwordNoHash);
+
     Boolean decodedPasswordUser(String originPass, String dbPass);
 }
