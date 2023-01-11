@@ -1,31 +1,40 @@
 package br.com.microservice.authentication.service.impl;
 
+import br.com.microservice.authentication.exception.ForbiddenErrorException;
 import br.com.microservice.authentication.helper.ValidateHelper;
 import br.com.microservice.authentication.mapper.UserMapper;
-import br.com.microservice.authentication.model.ResponseData;
+import br.com.microservice.authentication.model.UserDetailsCustom;
+import br.com.microservice.authentication.model.dto.ErrorData;
 import br.com.microservice.authentication.model.dto.UserDto;
 import br.com.microservice.authentication.model.entities.UserEntity;
+import br.com.microservice.authentication.model.enums.FindType;
 import br.com.microservice.authentication.model.enums.Role;
-import br.com.microservice.authentication.model.enums.TypeUpdate;
+import br.com.microservice.authentication.model.enums.TypeTokenEnum;
+import br.com.microservice.authentication.model.enums.TypeUpdateEnum;
 import br.com.microservice.authentication.model.request.UpdateRequest;
 import br.com.microservice.authentication.repository.UserRepository;
 import br.com.microservice.authentication.service.SecurityService;
 import br.com.microservice.authentication.service.UserService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 
-import static br.com.microservice.authentication.mapper.ModelUtilsMapper.setResponseData;
-import static br.com.microservice.authentication.model.enums.Role.ADMIN;
+import static br.com.microservice.authentication.helper.JwtHelper.decodedJWT;
+import static br.com.microservice.authentication.model.constants.BaseConstants.USERNAME;
+import static br.com.microservice.authentication.model.constants.TasksErrorConstants.TOKEN_INCORRETO;
+import static br.com.microservice.authentication.model.enums.TypeTokenEnum.ACCESS_TOKEN;
+import static br.com.microservice.authentication.model.enums.TypeTokenEnum.RESET_PASSWORD_TOKEN;
+
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
+
+    private final Map<TypeUpdateEnum, Function<UpdateRequest, UserDto>> typeUpdateMap;
 
     private final UserMapper userMapper;
     private final SecurityService securityService;
@@ -39,49 +48,99 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         this.userRepository = userRepository;
         this.validateHelper = validateHelper;
         this.userMapper = UserMapper.REFERENCE;
+        this.typeUpdateMap = this.initializeUpdateMap();
+    }
+
+    private static DecodedJWT getDecodedJwtAccessToken() {
+        return decodedJWT(System.getProperty(String.valueOf(ACCESS_TOKEN)), ACCESS_TOKEN);
+    }
+
+    private static String getJwtResetPassToken() {
+        try {
+            return System.getProperty(String.valueOf(RESET_PASSWORD_TOKEN));
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new ForbiddenErrorException(new ErrorData(TOKEN_INCORRETO));
+        }
     }
 
     @Override
-    public ResponseEntity<ResponseData> createUser(UserDto userDto) {
+    public UserDto createUser(UserDto userDto) {
         validateHelper.verifyNotExists(userDto.getUsername());
         validateHelper.verifyPasswordForce(userDto.getPassword());
 
         UserEntity user = userMapper.toEntity(userDto);
         securityService.encodedPasswordUser(user, userDto.getPassword());
         userRepository.save(user);
-        return new ResponseEntity<>(setResponseData(userDto), HttpStatus.CREATED);
+        return userDto;
     }
 
     @Override
-    public ResponseEntity<ResponseData> update(String userId,
-                                               String idOperador,
-                                               UpdateRequest updateRequest,
-                                               TypeUpdate typeUpdate) {
-        UserDto data = new UserDto();
-        switch (typeUpdate) {
-            case CHANGE_USER -> data = changeUser(userId, updateRequest.getUsername());
-            case DEACTIVATE_USER -> data = deactivateUser(userId);
-            case CHANGE_PASSWORD -> data = changePassword(userId, updateRequest.getNewPass());
-            case CHANGE_ROLE -> data = changeRole(userId, idOperador);
+    public UserDto find(FindType findType) {
+        UserEntity user = new UserEntity();
+        if (Objects.equals(FindType.USER_ID, findType)) {
+            user = validateHelper.verifyIfExists(getDecodedJwtAccessToken().getSubject());
+        } else if (Objects.equals(FindType.USERNAME, findType)) {
+            user = validateHelper.verifyIfExistsUsername(
+                    getDecodedJwtAccessToken().getClaim(USERNAME).asString()
+            );
         }
-        return ResponseEntity.ok(setResponseData(data));
+        return userMapper.toDto(user);
     }
 
     @Override
-    public ResponseEntity<ResponseData> findById(String userId) {
-        UserEntity user = validateHelper.verifyIfExists(userId);
-        return ResponseEntity.ok(setResponseData(userMapper.toDto(user)));
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetailsCustom loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity user = validateHelper.verifyIfExistsUsername(username);
-        return new User(user.getUsername(), user.getPassword(), securityService.getAuthority(user));
+        Set<SimpleGrantedAuthority> authorities = securityService.getAuthority(user.getRole());
+
+        if (user.getIsInactive()) {
+            return new UserDetailsCustom(
+                    user.getUserId(), user.getUsername(), user.getPassword(),
+                    Boolean.FALSE, Boolean.TRUE,
+                    Boolean.TRUE, Boolean.FALSE, authorities
+            );
+        }
+        return new UserDetailsCustom(user.getUserId(), user.getUsername(), user.getPassword(), authorities);
     }
 
+    @Override
+    public UserDto update(UpdateRequest updateRequest,
+                          TypeUpdateEnum typeUpdateEnum) {
+        return this.typeUpdateMap.get(typeUpdateEnum).apply(updateRequest);
+    }
 
-    private UserDto changeUser(String userId, String newUsername) {
-        UserEntity user = validateHelper.verifyIfExists(userId);
+    private Map<TypeUpdateEnum, Function<UpdateRequest, UserDto>> initializeUpdateMap() {
+        Map<TypeUpdateEnum, Function<UpdateRequest, UserDto>> map = new EnumMap<>(TypeUpdateEnum.class);
+
+        map.put(
+                TypeUpdateEnum.CHANGE_USER,
+                request -> this.changeUsername(request.getNewUsername())
+        );
+
+        map.put(
+                TypeUpdateEnum.CHANGE_PASSWORD,
+                request -> this.changePassword(request.getNewPass())
+        );
+
+        map.put(
+                TypeUpdateEnum.CHANGE_ROLE,
+                request -> this.changeRole(request.getIdOperador(), request.getNewRole())
+        );
+
+        map.put(
+                TypeUpdateEnum.NOT_RESET_PASSWORD_OR_RESET_PASSWORD,
+                request -> this.notResetOrResetPassword()
+        );
+
+        map.put(
+                TypeUpdateEnum.DEACTIVATE_OR_ACTIVATE_USER,
+                request -> this.deactivateOrActivateUser()
+        );
+
+        return Collections.unmodifiableMap(map);
+    }
+
+    private UserDto changeUsername(String newUsername) {
+        UserEntity user = validateHelper.verifyIfExists(getDecodedJwtAccessToken().getSubject());
 
         UserDto userDto = userMapper.toDto(user);
         userDto.setUsername(newUsername);
@@ -92,8 +151,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userDto;
     }
 
-    private UserDto changePassword(String userId, String newPass) {
-        UserEntity user = validateHelper.verifyIfExists(userId);
+    private UserDto changePassword(String newPass) {
+        DecodedJWT jwtDecoded = decodedJWT(getJwtResetPassToken(), TypeTokenEnum.RESET_PASSWORD_TOKEN);
+        validateHelper.notAllowResetPassword(jwtDecoded.getSubject());
+        validateHelper.verifyPasswordForce(newPass);
+        UserEntity user = validateHelper.verifyIfExists(jwtDecoded.getSubject());
 
         securityService.encodedPasswordUser(user, newPass);
         userRepository.save(user);
@@ -101,17 +163,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userMapper.toDto(user);
     }
 
-    private UserDto changeRole(String userId, String idOperador) {
+    private UserDto changeRole(String idOperador, Role role) {
         validateHelper.verifyRoleOperador(idOperador);
-        UserEntity user = validateHelper.verifyIfExists(userId);
+        UserEntity user = validateHelper.verifyIfExists(getDecodedJwtAccessToken().getSubject());
 
         Optional<UserDto> userDto = Optional.ofNullable(userMapper.toDto(user));
-        userDto.ifPresent(u -> {
-            switch (u.getRole()) {
-                case ADMIN -> u.setRole(Role.USER);
-                case USER -> u.setRole(ADMIN);
-            }
-        });
+        userDto.ifPresent(u -> u.setRole(role));
 
         UserDto retorno = userDto.orElseThrow();
         user = userMapper.toEntity(retorno);
@@ -120,16 +177,25 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return retorno;
     }
 
-    private UserDto deactivateUser(String userId) {
-        UserEntity userEntity = validateHelper.verifyIfExists(userId);
+    private UserDto deactivateOrActivateUser() {
+        UserEntity userEntity = validateHelper.verifyIfExists(getDecodedJwtAccessToken().getSubject());
 
         UserDto userDto = userMapper.toDto(userEntity);
-        userDto.setIsInactive(Boolean.TRUE);
+        userDto.setIsInactive(userEntity.getIsInactive() ? Boolean.FALSE : Boolean.TRUE);
 
         userEntity = userMapper.toEntity(userDto);
-
         userRepository.save(userEntity);
         return userDto;
     }
 
+    private UserDto notResetOrResetPassword() {
+        UserEntity userEntity = validateHelper.verifyIfExists(getDecodedJwtAccessToken().getSubject());
+
+        UserDto userDto = userMapper.toDto(userEntity);
+        userDto.setNotResetPassword(userEntity.getNotResetPassword() ? Boolean.FALSE : Boolean.TRUE);
+
+        userEntity = userMapper.toEntity(userDto);
+        userRepository.save(userEntity);
+        return userDto;
+    }
 }

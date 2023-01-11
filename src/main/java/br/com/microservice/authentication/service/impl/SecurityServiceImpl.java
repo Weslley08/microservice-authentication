@@ -1,6 +1,7 @@
 package br.com.microservice.authentication.service.impl;
 
 import br.com.microservice.authentication.model.entities.UserEntity;
+import br.com.microservice.authentication.model.enums.Role;
 import br.com.microservice.authentication.service.SecurityService;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Set;
+
+import static br.com.microservice.authentication.model.constants.BaseConstants.ROLE_;
 
 @Service
 public class SecurityServiceImpl implements SecurityService {
@@ -19,8 +22,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Set<SimpleGrantedAuthority> getAuthority(UserEntity user) {
-        return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
+    public Set<SimpleGrantedAuthority> getAuthority(Role role) {
+        return Collections.singleton(new SimpleGrantedAuthority(ROLE_ + role));
     }
 
     @Override

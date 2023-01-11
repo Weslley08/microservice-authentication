@@ -1,28 +1,39 @@
 package br.com.microservice.authentication.model.request;
 
 import br.com.microservice.authentication.model.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateRequest {
 
-    @JsonProperty(value = "username", access = JsonProperty.Access.WRITE_ONLY)
-    private String username;
+    @JsonProperty(value = "new_username", access = JsonProperty.Access.WRITE_ONLY)
+    private String newUsername;
     @JsonProperty(value = "new_pass", access = JsonProperty.Access.WRITE_ONLY)
     private String newPass;
-    @JsonProperty(value = "role", access = JsonProperty.Access.WRITE_ONLY)
-    private Role role = Role.USER;
-    @JsonProperty(value = "is_inactive", access = JsonProperty.Access.WRITE_ONLY)
-    private Boolean isInactive = Boolean.FALSE;
-    @JsonProperty(value = "not_reset_password", access = JsonProperty.Access.WRITE_ONLY)
-    private Boolean notResetPassword = Boolean.FALSE;
+    @JsonProperty(value = "new_role", access = JsonProperty.Access.WRITE_ONLY)
+    private Role newRole;
+    @JsonProperty(value = "id_operador", access = JsonProperty.Access.WRITE_ONLY)
+    private String idOperador;
 
-    public String getUsername() {
-        return username;
+    public UpdateRequest() {
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public UpdateRequest(String username, String newPass, Role role) {
+        this.newUsername = username;
+        this.newPass = newPass;
+        this.newRole = role;
+    }
+
+    public String getNewUsername() {
+        return newUsername;
+    }
+
+    public void setNewUsername(String newUsername) {
+        this.newUsername = newUsername;
     }
 
     public String getNewPass() {
@@ -33,27 +44,19 @@ public class UpdateRequest {
         this.newPass = newPass;
     }
 
-    public Role getRole() {
-        return role;
+    public Role getNewRole() {
+        return newRole;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setNewRole(Role newRole) {
+        this.newRole = newRole;
     }
 
-    public Boolean getInactive() {
-        return isInactive;
+    public String getIdOperador() {
+        return idOperador;
     }
 
-    public void setInactive(Boolean inactive) {
-        isInactive = inactive;
-    }
-
-    public Boolean getNotResetPassword() {
-        return notResetPassword;
-    }
-
-    public void setNotResetPassword(Boolean notResetPassword) {
-        this.notResetPassword = notResetPassword;
+    public void setIdOperador(String idOperador) {
+        this.idOperador = idOperador;
     }
 }

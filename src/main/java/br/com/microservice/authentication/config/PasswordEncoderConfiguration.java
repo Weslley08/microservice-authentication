@@ -1,4 +1,4 @@
-package br.com.microservice.authentication.config.security;
+package br.com.microservice.authentication.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

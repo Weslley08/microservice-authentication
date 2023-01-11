@@ -1,6 +1,8 @@
 package br.com.microservice.authentication.model.dto;
 
 import br.com.microservice.authentication.model.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
@@ -8,6 +10,8 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDto {
 
     @JsonProperty(value = "user_id", access = JsonProperty.Access.READ_ONLY)
@@ -26,6 +30,24 @@ public class UserDto {
     private Boolean isInactive = Boolean.FALSE;
     @JsonProperty(value = "not_reset_password", access = JsonProperty.Access.READ_WRITE)
     private Boolean notResetPassword = Boolean.FALSE;
+
+    public UserDto() {
+    }
+
+    public UserDto(String userId, String username, String password) {
+        this.userId = userId;
+        this.username = username;
+        this.password = password;
+    }
+
+    public UserDto(String userId, String username, String password, Role role, Boolean isInactive, Boolean notResetPassword) {
+        this.userId = userId;
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.isInactive = isInactive;
+        this.notResetPassword = notResetPassword;
+    }
 
     public String getUserId() {
         return userId;

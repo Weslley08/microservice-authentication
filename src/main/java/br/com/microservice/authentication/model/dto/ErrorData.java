@@ -1,15 +1,18 @@
 package br.com.microservice.authentication.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorData {
 
-    @JsonProperty("title")
-    private String title;
+    @JsonProperty("error_task")
+    private String errorTask;
     @JsonProperty("detail")
     private String detail;
     @JsonProperty("timestamp")
@@ -18,26 +21,29 @@ public class ErrorData {
     private List<CampoError> campoErrors;
 
 
-    public ErrorData(String title, String detail) {
-        this.title = title;
-        this.detail = detail;
+    public ErrorData(String errorTask) {
+        this.errorTask = errorTask;
         this.timestamp = String.valueOf(new Timestamp(System.currentTimeMillis()));
-        this.campoErrors = Collections.emptyList();
     }
 
-    public ErrorData(String title, String detail, List<CampoError> campoErrors) {
-        this.title = title;
+    public ErrorData(String errorTask, String detail) {
+        this.errorTask = errorTask;
         this.detail = detail;
+        this.timestamp = String.valueOf(new Timestamp(System.currentTimeMillis()));
+    }
+
+    public ErrorData(String errorTask, List<CampoError> campoErrors) {
+        this.errorTask = errorTask;
         this.timestamp = String.valueOf(new Timestamp(System.currentTimeMillis()));
         this.campoErrors = campoErrors;
     }
 
-    public String getTitle() {
-        return title;
+    public String getErrorTask() {
+        return errorTask;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setErrorTask(String errorTask) {
+        this.errorTask = errorTask;
     }
 
     public String getDetail() {

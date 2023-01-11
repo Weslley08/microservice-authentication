@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="MicroserviceAuthenticationApplication"
+                   type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+        <module name="microservice-authentication"/>
+        <option name="SPRING_BOOT_MAIN_CLASS"
+                value="br.com.microservice.authentication.MicroserviceAuthenticationApplication"/>
+        <method v="2">
+            <option name="Make" enabled="true"/>
+        </method>
+    </configuration>
+</component>

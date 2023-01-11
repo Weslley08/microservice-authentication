@@ -1,4 +1,4 @@
-package br.com.microservice.authentication.config.security;
+package br.com.microservice.authentication.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
@@ -7,51 +7,63 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
+
+import static br.com.microservice.authentication.model.constants.RoutesConstants.*;
 
 @Component
 @EnableWebSecurity
 public class WebSecurityConfig {
 
+    private final AuthenticationConfiguration authenticationConfiguration;
+
+    public WebSecurityConfig(AuthenticationConfiguration authenticationConfiguration) {
+        this.authenticationConfiguration = authenticationConfiguration;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-        // Enable CORS and disable CSRF
         http.cors().and().csrf().disable();
 
-        // Set session management to stateless
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        // Set unauthorized requests exception handler
         http.exceptionHandling((exceptions) ->
                 exceptions
                         .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                         .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
         );
 
-        // Set permissions on endpoints
         http.authorizeHttpRequests()
-                // Our public endpoints
-                .requestMatchers(HttpMethod.POST, "/microservice-authentication/v1/user")
+                .requestMatchers(HttpMethod.POST, CREATE_USER_URL)
                 .permitAll()
-                .requestMatchers(HttpMethod.POST, "/microservice-authentication/v1/authentication/token")
+
+                .requestMatchers(HttpMethod.POST, TOKEN_USER_URL)
                 .permitAll()
-                // Our private endpoints
+
+                .requestMatchers(HttpMethod.POST, TOKEN_RESET_PASS_USER_URL)
+                .permitAll()
+
+                .requestMatchers(HttpMethod.POST, TOKEN_REFRESH_USER_URL)
+                .permitAll()
+
+                .requestMatchers(SWAGGER_UI_URL)
+                .permitAll()
+
+                .requestMatchers(ACTUATOR_URL)
+                .permitAll()
+
+                .requestMatchers(H2_DB_URL)
+                .permitAll()
+
                 .anyRequest()
                 .authenticated()
-                // Set up oauth2 resource server
                 .and()
                 .httpBasic(Customizer.withDefaults())
-                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
-
+                .addFilter(new JWTAuthorizationFilter(authenticationConfiguration.getAuthenticationManager()));
         return http.build();
     }
 
@@ -59,18 +71,6 @@ public class WebSecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
             throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
     }
 
 }

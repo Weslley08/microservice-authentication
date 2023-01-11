@@ -7,40 +7,42 @@ import br.com.microservice.authentication.model.dto.CampoError;
 import br.com.microservice.authentication.model.dto.ErrorData;
 import br.com.microservice.authentication.model.entities.UserEntity;
 import br.com.microservice.authentication.repository.UserRepository;
-import org.springframework.http.HttpStatus;
+import br.com.microservice.authentication.service.SecurityService;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
+import static br.com.microservice.authentication.model.constants.BaseConstants.PASSWORD;
+import static br.com.microservice.authentication.model.constants.ErrorMessagesConstants.*;
+import static br.com.microservice.authentication.model.constants.RegexConstants.REGEX_PASSWORD;
+import static br.com.microservice.authentication.model.constants.TasksErrorConstants.userAndId;
+import static br.com.microservice.authentication.model.constants.TasksErrorConstants.*;
 import static br.com.microservice.authentication.model.enums.Role.ADMIN;
 
 @Component
 public class ValidateHelper {
 
-    private final static String REGEX_PASSWORD =
-            "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[$*&@#])(?:([0-9a-zA-Z$*&@#])(?!\\1)){8,}$";
-    private final static List<String> STRINGS_ERROR = Arrays.stream(new String[]{
-            "Deve conter 8 caracteres no mínimo", "Deve conter 1 Letra Maiúscula no mínimo",
-            "Deve conter 1 Número no mínimo", "1 Símbolo no mínimo: $*&@#", "Não deve conter caracteres emse sequencia"
-    }).toList();
     private final UserRepository userRepository;
+    private final SecurityService securityService;
 
-    public ValidateHelper(UserRepository userRepository) {
+    public ValidateHelper(UserRepository userRepository,
+                          SecurityService securityService) {
         this.userRepository = userRepository;
+        this.securityService = securityService;
     }
 
     public void verifyPasswordForce(String passwordNoHash) {
         Optional.of(passwordNoHash.matches(REGEX_PASSWORD))
                 .filter(Boolean::booleanValue)
                 .orElseThrow(() -> {
-                    List<CampoError> campoErrors = new ArrayList<>(5);
-
-                    for (String s : STRINGS_ERROR) {
-                        campoErrors.add(new CampoError("password", s));
-                    }
+                    List<CampoError> campoErrors = new ArrayList<>(STRINGS_ERRORS_PASSWORD.length);
+                    for (String campos : STRINGS_ERRORS_PASSWORD) campoErrors.add(new CampoError(PASSWORD, campos));
                     throw new UnprocessableEntityErrorException(
-                            new ErrorData(HttpStatus.UNPROCESSABLE_ENTITY.getReasonPhrase(),
-                                    "Erro na validação dos campos", campoErrors)
+                            new ErrorData(ERRO_VALIDACAO_CAMPOS, campoErrors)
                     );
                 });
     }
@@ -49,12 +51,7 @@ public class ValidateHelper {
         return userRepository
                 .findById(id)
                 .orElseThrow(() ->
-                        new NotFoundErrorException(
-                                new ErrorData(
-                                        HttpStatus.NOT_FOUND.getReasonPhrase(),
-                                        "user: " + id + " não encontrado"
-                                )
-                        )
+                        new NotFoundErrorException(new ErrorData(USUARIO_NAO_ENCONTRADO))
                 );
     }
 
@@ -62,12 +59,7 @@ public class ValidateHelper {
         return userRepository
                 .findByUsername(username)
                 .orElseThrow(() ->
-                        new NotFoundErrorException(
-                                new ErrorData(
-                                        HttpStatus.NOT_FOUND.getReasonPhrase(),
-                                        "user: " + username + " não encontrado"
-                                )
-                        )
+                        new NotFoundErrorException(new ErrorData(USUARIO_NAO_ENCONTRADO))
                 );
     }
 
@@ -75,10 +67,7 @@ public class ValidateHelper {
         userRepository
                 .findByUsername(username)
                 .ifPresent(user -> {
-                    throw new UnprocessableEntityErrorException(
-                            new ErrorData(HttpStatus.UNPROCESSABLE_ENTITY.getReasonPhrase(),
-                                    "Usuario: " + user.getUserId() + "já existe na base de dados")
-                    );
+                    throw new UnprocessableEntityErrorException(new ErrorData(USUARIO_JA_EXISTENTE));
                 });
     }
 
@@ -87,10 +76,39 @@ public class ValidateHelper {
                 .findById(id)
                 .filter(op -> Objects.equals(ADMIN, op.getRole()))
                 .orElseThrow(() -> new UnauthorizedErrorException(
-                        new ErrorData(
-                                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                                "Operador não autorizado a mudar a role"
-                        )
+                        new ErrorData(OPERACAO_NAO_PERMITIDA, OPERADOR_NAO_AUTORIZADO)
                 ));
+    }
+
+    public void notAllowResetPassword(String id) {
+        userRepository
+                .findById(id)
+                .filter(UserEntity::getNotResetPassword)
+                .ifPresent(user -> {
+                    throw new UnprocessableEntityErrorException(new ErrorData(
+                            OPERACAO_NAO_PERMITIDA, ACAO_BLOQUEADA_USUARIO
+                    ));
+                });
+    }
+
+    public void isClientValid(String password, UserDetails userDetails) {
+        if (!userDetails.isEnabled() || !userDetails.isAccountNonLocked()) {
+            throw new UnauthorizedErrorException(
+                    new ErrorData(USUARIO_DESATIVADO, userAndId(userDetails.getUsername()))
+            );
+        }
+        if (!securityService.decodedPasswordUser(password, userDetails.getPassword())) {
+            throw new UnauthorizedErrorException(
+                    new ErrorData(OPERACAO_NAO_PERMITIDA, CREDENCIAIS_INCORRETAS)
+            );
+        }
+    }
+
+    public void isClientValid(UserDetails userDetails) {
+        if (!userDetails.isEnabled() || !userDetails.isAccountNonLocked()) {
+            throw new UnauthorizedErrorException(
+                    new ErrorData(USUARIO_DESATIVADO, userAndId(userDetails.getUsername()))
+            );
+        }
     }
 }

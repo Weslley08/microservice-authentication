@@ -1,16 +1,22 @@
 package br.com.microservice.authentication.controller;
 
-import br.com.microservice.authentication.model.ResponseData;
+import br.com.microservice.authentication.model.ResponseEntityCustom;
 import br.com.microservice.authentication.model.dto.UserDto;
-import br.com.microservice.authentication.model.enums.TypeUpdate;
+import br.com.microservice.authentication.model.enums.FindType;
+import br.com.microservice.authentication.model.enums.TypeUpdateEnum;
 import br.com.microservice.authentication.model.request.UpdateRequest;
 import br.com.microservice.authentication.service.UserService;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static br.com.microservice.authentication.model.constants.RoutesConstants.*;
+
 @RestController
-@RequestMapping("/microservice-authentication/v1/user")
+@Timed(histogram = true, value = "user")
+@RequestMapping(value = BASE_PATH_AND_V1, produces = MediaType.APPLICATION_JSON_VALUE)
 public class UserController {
 
     private final UserService userService;
@@ -19,21 +25,21 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
-    public ResponseEntity<ResponseData> create(@RequestBody @Valid UserDto userDto) {
-        return userService.createUser(userDto);
+    @PostMapping(value = USERS_PATH,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserDto> create(@RequestBody @Valid UserDto userDto) {
+        return ResponseEntityCustom.created(userService.createUser(userDto));
     }
 
-    @PutMapping("/{user_id}")
-    public ResponseEntity<ResponseData> update(@PathVariable("user_id") String userId,
-                                               @RequestParam(required = false, name = "id_operador") String idOperador,
-                                               @RequestBody @Valid UpdateRequest updateRequest,
-                                               @RequestParam("type_update") TypeUpdate typeUpdate) {
-        return userService.update(userId, idOperador, updateRequest, typeUpdate);
+    @PatchMapping(value = USERS_PATH + "/update",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserDto> update(@RequestBody @Valid UpdateRequest updateRequest,
+                                          @RequestParam(value = "type_update") TypeUpdateEnum typeUpdate) {
+        return ResponseEntityCustom.ok(userService.update(updateRequest, typeUpdate));
     }
 
-    @GetMapping("/{user_id}")
-    public ResponseEntity<ResponseData> findById(@PathVariable("user_id") String userId) {
-        return userService.findById(userId);
+    @GetMapping(value = USERS_PATH + "/find")
+    public ResponseEntity<UserDto> findById(@RequestParam("find_type") FindType findType) {
+        return ResponseEntityCustom.ok(userService.find(findType));
     }
 }

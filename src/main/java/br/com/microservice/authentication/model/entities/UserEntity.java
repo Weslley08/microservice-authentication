@@ -7,7 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(schema = "", name = "user_auth")
+@Table(name = "user_auth")
 public class UserEntity {
 
     @Id
@@ -23,6 +23,20 @@ public class UserEntity {
     private Boolean isInactive;
     @Column(nullable = false)
     private Boolean notResetPassword;
+
+    public UserEntity() {
+    }
+
+    public UserEntity(String userId, String username,
+                      String password, Role role,
+                      Boolean isInactive, Boolean notResetPassword) {
+        this.userId = userId;
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.isInactive = isInactive;
+        this.notResetPassword = notResetPassword;
+    }
 
     public String getUserId() {
         return userId;
