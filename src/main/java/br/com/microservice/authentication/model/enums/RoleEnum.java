@@ -1,7 +1,6 @@
 package br.com.microservice.authentication.model.enums;
 
-public enum FindType {
-
-    USERNAME,
-    USER_ID
+public enum RoleEnum {
+    USER,
+    ADMIN
 }

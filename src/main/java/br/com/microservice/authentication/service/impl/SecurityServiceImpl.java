@@ -1,7 +1,7 @@
 package br.com.microservice.authentication.service.impl;
 
 import br.com.microservice.authentication.model.entities.UserEntity;
-import br.com.microservice.authentication.model.enums.Role;
+import br.com.microservice.authentication.model.enums.RoleEnum;
 import br.com.microservice.authentication.service.SecurityService;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,8 +22,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Set<SimpleGrantedAuthority> getAuthority(Role role) {
-        return Collections.singleton(new SimpleGrantedAuthority(ROLE_ + role));
+    public Set<SimpleGrantedAuthority> getAuthority(RoleEnum roleEnum) {
+        return Collections.singleton(new SimpleGrantedAuthority(ROLE_ + roleEnum));
     }
 
     @Override

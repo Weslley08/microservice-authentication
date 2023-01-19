@@ -4,8 +4,8 @@ import br.com.microservice.authentication.helper.ValidateHelper;
 import br.com.microservice.authentication.mapper.UserMapper;
 import br.com.microservice.authentication.model.dto.UserDto;
 import br.com.microservice.authentication.model.entities.UserEntity;
-import br.com.microservice.authentication.model.enums.FindType;
-import br.com.microservice.authentication.model.enums.Role;
+import br.com.microservice.authentication.model.enums.FindTypeEnum;
+import br.com.microservice.authentication.model.enums.RoleEnum;
 import br.com.microservice.authentication.model.enums.TypeUpdateEnum;
 import br.com.microservice.authentication.model.request.UpdateRequest;
 import br.com.microservice.authentication.repository.UserRepository;
@@ -61,7 +61,7 @@ class UserServiceImplTest {
     @Test
     void it_should_update_username() {
         UserDto retorno = this.userService.update(
-                new UpdateRequest("mock_teste_update_user", "123456Ab*", Role.ADMIN),
+                new UpdateRequest("mock_teste_update_user", "123456Ab*", RoleEnum.ADMIN),
                 TypeUpdateEnum.CHANGE_USER);
         assertNotNull(retorno);
     }
@@ -69,7 +69,7 @@ class UserServiceImplTest {
 
     @Test
     void it_should_update_password() {
-        UpdateRequest updateRequest = new UpdateRequest("mock_teste_1", "123456Ab*", Role.USER);
+        UpdateRequest updateRequest = new UpdateRequest("mock_teste_1", "123456Ab*", RoleEnum.USER);
         UserDto retorno = this.userService.update(updateRequest,
                 TypeUpdateEnum.CHANGE_PASSWORD);
         assertEquals(updateRequest.getNewPass(), retorno.getPassword());
@@ -78,9 +78,9 @@ class UserServiceImplTest {
     @Test
     void it_should_update_role() {
         UserDto retorno = this.userService.update(
-                new UpdateRequest("mock_teste_update_user", "123456Ab*", Role.ADMIN),
+                new UpdateRequest("mock_teste_update_user", "123456Ab*", RoleEnum.ADMIN),
                 TypeUpdateEnum.CHANGE_ROLE);
-        assertEquals(Role.ADMIN, retorno.getRole());
+        assertEquals(RoleEnum.ADMIN, retorno.getRole());
     }
 
     @Test
@@ -88,7 +88,7 @@ class UserServiceImplTest {
         when(this.validateHelper.verifyIfExists("a7ea6e8d-f08a-4033-b93c-7bbd6daa6bf9"))
                 .thenReturn(this.userEntity);
         UserDto retorno = this.userService.update(
-                new UpdateRequest("mock_teste_update_user", "123456Ab*", Role.USER),
+                new UpdateRequest("mock_teste_update_user", "123456Ab*", RoleEnum.USER),
                 TypeUpdateEnum.NOT_RESET_PASSWORD_OR_RESET_PASSWORD);
         assertTrue(retorno.getNotResetPassword());
     }
@@ -97,7 +97,7 @@ class UserServiceImplTest {
     @Test
     void it_should_update_deactivate_or_activate_user() {
         UserDto retorno = this.userService.update(
-                new UpdateRequest("mock_teste_update_user", "123456Ab*", Role.USER),
+                new UpdateRequest("mock_teste_update_user", "123456Ab*", RoleEnum.USER),
                 TypeUpdateEnum.DEACTIVATE_OR_ACTIVATE_USER);
         UserEntity userEntity = this.userEntity;
         assertEquals(userEntity.getNotResetPassword(), retorno.getNotResetPassword());
@@ -105,7 +105,7 @@ class UserServiceImplTest {
 
     @Test
     void it_should_find_user_byId() {
-        UserDto userDto = this.userService.find(FindType.USER_ID);
+        UserDto userDto = this.userService.find(FindTypeEnum.USER_ID);
         assertNotNull(userDto);
     }
 
@@ -115,7 +115,7 @@ class UserServiceImplTest {
                 thenReturn(Optional.ofNullable(this.userEntity));
         when(validateHelper.verifyIfExistsUsername(this.userEntity.getUsername()))
                 .thenReturn(this.userEntity);
-        UserDto userDto = this.userService.find(FindType.USERNAME);
+        UserDto userDto = this.userService.find(FindTypeEnum.USERNAME);
         assertNotNull(userDto);
     }
 

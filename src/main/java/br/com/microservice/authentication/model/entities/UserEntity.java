@@ -1,6 +1,6 @@
 package br.com.microservice.authentication.model.entities;
 
-import br.com.microservice.authentication.model.enums.Role;
+import br.com.microservice.authentication.model.enums.RoleEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -18,7 +18,7 @@ public class UserEntity {
     @Column(nullable = false)
     private String password;
     @Column(nullable = false)
-    private Role role;
+    private RoleEnum roleEnum;
     @Column(nullable = false)
     private Boolean isInactive;
     @Column(nullable = false)
@@ -28,12 +28,12 @@ public class UserEntity {
     }
 
     public UserEntity(String userId, String username,
-                      String password, Role role,
+                      String password, RoleEnum roleEnum,
                       Boolean isInactive, Boolean notResetPassword) {
         this.userId = userId;
         this.username = username;
         this.password = password;
-        this.role = role;
+        this.roleEnum = roleEnum;
         this.isInactive = isInactive;
         this.notResetPassword = notResetPassword;
     }
@@ -62,12 +62,12 @@ public class UserEntity {
         this.password = password;
     }
 
-    public Role getRole() {
-        return role;
+    public RoleEnum getRole() {
+        return roleEnum;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setRole(RoleEnum roleEnum) {
+        this.roleEnum = roleEnum;
     }
 
     public Boolean getIsInactive() {

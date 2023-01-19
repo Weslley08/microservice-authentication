@@ -1,6 +1,6 @@
 package br.com.microservice.authentication.model.dto;
 
-import br.com.microservice.authentication.model.enums.Role;
+import br.com.microservice.authentication.model.enums.RoleEnum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,7 +25,7 @@ public class UserDto {
     @Size(min = 8, message = "O campo password não atingiu ao tamanho minimo")
     private String password;
     @JsonProperty(value = "role", access = JsonProperty.Access.READ_ONLY)
-    private Role role = Role.USER;
+    private RoleEnum roleEnum = RoleEnum.USER;
     @JsonProperty(value = "is_inactive", access = JsonProperty.Access.READ_ONLY)
     private Boolean isInactive = Boolean.FALSE;
     @JsonProperty(value = "not_reset_password", access = JsonProperty.Access.READ_WRITE)
@@ -40,11 +40,11 @@ public class UserDto {
         this.password = password;
     }
 
-    public UserDto(String userId, String username, String password, Role role, Boolean isInactive, Boolean notResetPassword) {
+    public UserDto(String userId, String username, String password, RoleEnum roleEnum, Boolean isInactive, Boolean notResetPassword) {
         this.userId = userId;
         this.username = username;
         this.password = password;
-        this.role = role;
+        this.roleEnum = roleEnum;
         this.isInactive = isInactive;
         this.notResetPassword = notResetPassword;
     }
@@ -73,12 +73,12 @@ public class UserDto {
         this.password = password;
     }
 
-    public Role getRole() {
-        return role;
+    public RoleEnum getRole() {
+        return roleEnum;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setRole(RoleEnum roleEnum) {
+        this.roleEnum = roleEnum;
     }
 
     public Boolean getIsInactive() {

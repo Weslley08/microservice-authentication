@@ -21,7 +21,7 @@ import static br.com.microservice.authentication.model.constants.ErrorMessagesCo
 import static br.com.microservice.authentication.model.constants.RegexConstants.REGEX_PASSWORD;
 import static br.com.microservice.authentication.model.constants.TasksErrorConstants.userAndId;
 import static br.com.microservice.authentication.model.constants.TasksErrorConstants.*;
-import static br.com.microservice.authentication.model.enums.Role.ADMIN;
+import static br.com.microservice.authentication.model.enums.RoleEnum.ADMIN;
 
 @Component
 public class ValidateHelper {

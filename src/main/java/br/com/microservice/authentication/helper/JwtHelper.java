@@ -9,13 +9,12 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-import static br.com.microservice.authentication.helper.KeyToolHelper.*;
+import static br.com.microservice.authentication.helper.KeyToolHelper.loadPrivateKey;
+import static br.com.microservice.authentication.helper.KeyToolHelper.loadPublicKey;
 import static br.com.microservice.authentication.model.constants.BaseConstants.APP_NAME;
 import static br.com.microservice.authentication.model.constants.SecurityConstants.*;
 import static br.com.microservice.authentication.model.constants.TasksErrorConstants.TOKEN_EXPIRADO;
@@ -56,26 +55,12 @@ public class JwtHelper {
     }
 
     private static void verifyTypeToken(TypeTokenEnum typeToken) {
-        RSAPublicKey rsaPublicKey = null;
-        RSAPrivateKey rsaPrivateKey = null;
-
         switch (typeToken) {
-            case ACCESS_TOKEN -> {
-                rsaPublicKey = loadAccessPublicKey();
-                rsaPrivateKey = loadAccessPrivateKey();
-                expiresAt = new Date(System.currentTimeMillis() + EXPIRATION_TIME_ACCESS_TOKEN);
-            }
-            case REFRESH_TOKEN -> {
-                rsaPublicKey = loadRefreshPublicKey();
-                rsaPrivateKey = loadRefreshPrivateKey();
-                expiresAt = new Date(System.currentTimeMillis() + EXPIRATION_TIME_REFRESH_TOKEN);
-            }
-            case RESET_PASSWORD_TOKEN -> {
-                rsaPublicKey = loadResetPasswordPublicKey();
-                rsaPrivateKey = loadResetPasswordPrivateKey();
-                expiresAt = new Date(System.currentTimeMillis() + EXPIRATION_TIME_RESET_PASSWORD_TOKEN);
-            }
+            case ACCESS_TOKEN -> expiresAt = new Date(System.currentTimeMillis() + EXPIRATION_TIME_ACCESS_TOKEN);
+            case REFRESH_TOKEN -> expiresAt = new Date(System.currentTimeMillis() + EXPIRATION_TIME_REFRESH_TOKEN);
+            case RESET_PASSWORD_TOKEN ->
+                    expiresAt = new Date(System.currentTimeMillis() + EXPIRATION_TIME_RESET_PASSWORD_TOKEN);
         }
-        algorithm = Algorithm.RSA512(rsaPublicKey, rsaPrivateKey);
+        algorithm = Algorithm.RSA512(loadPublicKey(typeToken), loadPrivateKey(typeToken));
     }
 }

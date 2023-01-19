@@ -4,7 +4,7 @@ import br.com.microservice.authentication.exception.NotFoundErrorException;
 import br.com.microservice.authentication.exception.UnauthorizedErrorException;
 import br.com.microservice.authentication.exception.UnprocessableEntityErrorException;
 import br.com.microservice.authentication.model.entities.UserEntity;
-import br.com.microservice.authentication.model.enums.Role;
+import br.com.microservice.authentication.model.enums.RoleEnum;
 import br.com.microservice.authentication.repository.UserRepository;
 import br.com.microservice.authentication.service.SecurityService;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +41,7 @@ class ValidateHelperTest {
     void setUp() {
         UserEntity userEntity = new UserEntity(
                 "a7ea6e8d-f08a-4033-b93c-7bbd6daa6bf9", "mock_teste_1", "123456789Ab",
-                Role.USER, Boolean.TRUE, Boolean.TRUE
+                RoleEnum.USER, Boolean.TRUE, Boolean.TRUE
         );
         lenient().when(this.userRepository.findByUsername(userEntity.getUsername())).thenReturn(Optional.of(userEntity));
         lenient().when(this.userRepository.findById(userEntity.getUserId())).thenReturn(Optional.of(userEntity));

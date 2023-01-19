@@ -2,7 +2,7 @@ package br.com.microservice.authentication.controller;
 
 import br.com.microservice.authentication.model.ResponseEntityCustom;
 import br.com.microservice.authentication.model.dto.UserDto;
-import br.com.microservice.authentication.model.enums.FindType;
+import br.com.microservice.authentication.model.enums.FindTypeEnum;
 import br.com.microservice.authentication.model.enums.TypeUpdateEnum;
 import br.com.microservice.authentication.model.request.UpdateRequest;
 import br.com.microservice.authentication.service.UserService;
@@ -39,7 +39,7 @@ public class UserController {
     }
 
     @GetMapping(value = USERS_PATH + "/find")
-    public ResponseEntity<UserDto> findById(@RequestParam("find_type") FindType findType) {
-        return ResponseEntityCustom.ok(userService.find(findType));
+    public ResponseEntity<UserDto> findById(@RequestParam("findTypeEnum") FindTypeEnum findTypeEnum) {
+        return ResponseEntityCustom.ok(userService.find(findTypeEnum));
     }
 }

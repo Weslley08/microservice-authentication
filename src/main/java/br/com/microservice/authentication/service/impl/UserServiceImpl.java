@@ -7,8 +7,8 @@ import br.com.microservice.authentication.model.UserDetailsCustom;
 import br.com.microservice.authentication.model.dto.ErrorData;
 import br.com.microservice.authentication.model.dto.UserDto;
 import br.com.microservice.authentication.model.entities.UserEntity;
-import br.com.microservice.authentication.model.enums.FindType;
-import br.com.microservice.authentication.model.enums.Role;
+import br.com.microservice.authentication.model.enums.FindTypeEnum;
+import br.com.microservice.authentication.model.enums.RoleEnum;
 import br.com.microservice.authentication.model.enums.TypeTokenEnum;
 import br.com.microservice.authentication.model.enums.TypeUpdateEnum;
 import br.com.microservice.authentication.model.request.UpdateRequest;
@@ -75,11 +75,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public UserDto find(FindType findType) {
+    public UserDto find(FindTypeEnum findTypeEnum) {
         UserEntity user = new UserEntity();
-        if (Objects.equals(FindType.USER_ID, findType)) {
+        if (Objects.equals(FindTypeEnum.USER_ID, findTypeEnum)) {
             user = validateHelper.verifyIfExists(getDecodedJwtAccessToken().getSubject());
-        } else if (Objects.equals(FindType.USERNAME, findType)) {
+        } else if (Objects.equals(FindTypeEnum.USERNAME, findTypeEnum)) {
             user = validateHelper.verifyIfExistsUsername(
                     getDecodedJwtAccessToken().getClaim(USERNAME).asString()
             );
@@ -163,12 +163,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userMapper.toDto(user);
     }
 
-    private UserDto changeRole(String idOperador, Role role) {
+    private UserDto changeRole(String idOperador, RoleEnum roleEnum) {
         validateHelper.verifyRoleOperador(idOperador);
         UserEntity user = validateHelper.verifyIfExists(getDecodedJwtAccessToken().getSubject());
 
         Optional<UserDto> userDto = Optional.ofNullable(userMapper.toDto(user));
-        userDto.ifPresent(u -> u.setRole(role));
+        userDto.ifPresent(u -> u.setRole(roleEnum));
 
         UserDto retorno = userDto.orElseThrow();
         user = userMapper.toEntity(retorno);

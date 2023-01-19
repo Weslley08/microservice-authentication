@@ -1,6 +1,6 @@
 package br.com.microservice.authentication.model.request;
 
-import br.com.microservice.authentication.model.enums.Role;
+import br.com.microservice.authentication.model.enums.RoleEnum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,17 +15,17 @@ public class UpdateRequest {
     @JsonProperty(value = "new_pass", access = JsonProperty.Access.WRITE_ONLY)
     private String newPass;
     @JsonProperty(value = "new_role", access = JsonProperty.Access.WRITE_ONLY)
-    private Role newRole;
+    private RoleEnum newRoleEnum;
     @JsonProperty(value = "id_operador", access = JsonProperty.Access.WRITE_ONLY)
     private String idOperador;
 
     public UpdateRequest() {
     }
 
-    public UpdateRequest(String username, String newPass, Role role) {
+    public UpdateRequest(String username, String newPass, RoleEnum roleEnum) {
         this.newUsername = username;
         this.newPass = newPass;
-        this.newRole = role;
+        this.newRoleEnum = roleEnum;
     }
 
     public String getNewUsername() {
@@ -44,12 +44,12 @@ public class UpdateRequest {
         this.newPass = newPass;
     }
 
-    public Role getNewRole() {
-        return newRole;
+    public RoleEnum getNewRole() {
+        return newRoleEnum;
     }
 
-    public void setNewRole(Role newRole) {
-        this.newRole = newRole;
+    public void setNewRole(RoleEnum newRoleEnum) {
+        this.newRoleEnum = newRoleEnum;
     }
 
     public String getIdOperador() {

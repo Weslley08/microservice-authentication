@@ -3,7 +3,7 @@ package br.com.microservice.authentication.service.impl;
 import br.com.microservice.authentication.mapper.UserMapper;
 import br.com.microservice.authentication.model.dto.UserDto;
 import br.com.microservice.authentication.model.entities.UserEntity;
-import br.com.microservice.authentication.model.enums.Role;
+import br.com.microservice.authentication.model.enums.RoleEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +36,7 @@ class SecurityServiceImplTest {
 
     @Test
     void it_should_get_authority() {
-        Set<SimpleGrantedAuthority> retorno = this.securityService.getAuthority(Role.USER);
+        Set<SimpleGrantedAuthority> retorno = this.securityService.getAuthority(RoleEnum.USER);
         String role = retorno.stream().findFirst().orElseThrow().getAuthority();
 
         assertEquals("USER", role.replace(ROLE_, ""));
@@ -44,7 +44,7 @@ class SecurityServiceImplTest {
 
     @Test
     void it_should_get_authority_start_with_ROLE_() {
-        Set<SimpleGrantedAuthority> retorno = this.securityService.getAuthority(Role.USER);
+        Set<SimpleGrantedAuthority> retorno = this.securityService.getAuthority(RoleEnum.USER);
         String role = retorno.stream().findFirst().orElseThrow().getAuthority();
 
         assertTrue(role.startsWith(ROLE_));
