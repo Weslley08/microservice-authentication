@@ -6,8 +6,6 @@ public class SecurityConstants extends BaseConstants {
 
 
     public static final String SRC_MAIN_RESOURCES_KEYS = "./src/main/resources/keys/";
-    public static final String[] KEYS_PATH = new String[]{"access_token", "refresh_token", "change_password_token"
-    };
     public static final String ALLOWED_ALL = "*";
     public static final String[] ALLOWED_HEADERS = new String[]{"Authorization", "Content-Type", "Accept"};
     public static final String[] EXPOSED_ALLOWED_HEADERS = new String[]{"Origin", "Authorization", "Content-Type", "Accept"};

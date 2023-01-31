@@ -7,15 +7,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
-import java.util.UUID;
-
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDto {
 
-    @JsonProperty(value = "user_id", access = JsonProperty.Access.READ_ONLY)
-    private String userId = UUID.randomUUID().toString();
+    @JsonProperty(value = "user_id", access = JsonProperty.Access.READ_WRITE)
+    private String userId;
     @NotEmpty
     @JsonProperty(value = "username", access = JsonProperty.Access.READ_WRITE)
     @Size(min = 5, message = "O campo username não atingiu ao tamanho minimo")
